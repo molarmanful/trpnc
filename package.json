@@ -1,0 +1,26 @@
+{
+  "name": "trpnc",
+  "version": "0.0.0",
+  "description": "Stack-based calculator for the terminal.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/molarmanful/trpnc.git"
+  },
+  "bin": {
+    "trpnc":"./index.js"
+  },
+  "author": "Benjamin Pang",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/molarmanful/trpnc/issues"
+  },
+  "homepage": "https://github.com/molarmanful/trpnc#readme",
+  "dependencies": {
+    "ansi": "^0.3.1",
+    "keypress": "^0.2.1"
+  }
+}
