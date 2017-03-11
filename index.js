@@ -39,7 +39,7 @@ process.stdin.on('keypress',key=(a='',b='')=>{
   //num
   a.match(/^[\d.]+$/)||a=='e'&&stack[0]?
     (stack[0]+=a)
-  :(a==' '||a=='\r')&&stack[0]?
+  :(a==' '||a=='\r'||a=='\n')&&stack[0]?
     (stack[0]=eval(stack[0])+'',stack.unshift(''))
   :a=='_'?
     (stack[0]=''+-stack[0])
