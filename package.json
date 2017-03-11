@@ -22,7 +22,8 @@
   "dependencies": {
     "ansi": "^0.3.1",
     "keypress": "^0.2.1",
-    "prompt-sync": "^4.1.4",
+    "prompt-sync": "git+https://github.com/0x00A/prompt-sync.git",
+    "readline-sync": "^1.4.6",
     "robotjs": "^0.4.5"
   }
 }
