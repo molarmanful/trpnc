@@ -4,6 +4,7 @@ O=require('ansi')(process.stdout)
 E=require('child_process').execSync
 I=require('prompt-sync')()
 R=require('robotjs')
+C=require('copy-paste')
 stack=['']
 vars={}
 und=[stack]
@@ -35,6 +36,15 @@ exec=x=>{
   })
 }
 
+read=x=>{
+  O.write('\n')
+  process.stdin.pause()
+  O.write('\r\t\r')
+  x()
+  process.stdin.resume()
+  stack.unshift('')
+}
+
 //main process
 process.stdin.on('keypress',key=(a='',b='')=>{
   //num
@@ -42,10 +52,16 @@ process.stdin.on('keypress',key=(a='',b='')=>{
     (stack[0]+=a)
   :(a==' '||a=='\r'||a=='\n')&&stack[0]?
     (stack[0]=eval(stack[0])+'',stack.unshift(''))
-  :a=='_'?
-    (stack[0]=''+-stack[0])
-  :a=='backspace'||(b.name=='backspace'&&(stack[0]||stack[1]))?
+  :(a=='backspace'||b.name=='backspace')&&stack[0]?
     stack[0]?(stack[0]=stack[0].slice(0,-1)):stack.shift()
+
+  :stack[0]||stack.shift()
+
+  //copy-paste
+  a=='y'&&stack[0]?
+    (C.copy(stack.shift()),stack.unshift(''))
+  :a=='p'?
+    stack.unshift('',C.paste())
 
   //undo/redo
   :a=='u'&&und.length>1?
@@ -54,46 +70,36 @@ process.stdin.on('keypress',key=(a='',b='')=>{
     und.push(red.pop())
 
   //math
+  :a=='_'?
+    (stack[0]=''+-stack[0])
   :a.match(/^[+\-*/%]$/)&&stack.length>1?
-    (stack[0]||stack.shift(),stack.unshift('',eval(`${stack.splice(1,1)} ${a} ${stack.shift()}`)))
+    stack.unshift('',eval(`${+stack.splice(1,1)} ${a} ${+stack.shift()}`))
   :a=='^'&&stack.length>1?
-    (stack[0]||stack.shift(),stack.unshift('',Math.pow(stack.splice(1,1),stack.shift())))
+    stack.unshift('',Math.pow(stack.splice(1,1),stack.shift()))
   :a=='v'?
     (stack[0]=Math.sqrt(stack[0]),stack.unshift(''))
 
   //stack
-  :a=='$'&&(stack[0]||stack[1])?
-    (stack[0]||stack.shift(),stack.unshift('',stack[0]))
-  :a=='!'&&(stack[0]||stack[1])?
-    (stack[0]||stack.shift(),stack[0]='')
+  :a=='$'&&stack[0]?
+    stack.unshift('',stack[0])
+  :a=='!'&&stack[0]?
+    stack[0]=''
   :a=='\\'&&stack[1]?
-    (stack[0]||stack.shift(),stack.unshift('',stack.splice(1,1)))
+    stack.unshift('',stack.splice(1,1))
   :a=='@'&&stack[2]?
-    (stack[0]||stack.shift(),stack.splice(stack.length>2?2:1,0,stack.shift()),stack.unshift(''))
+    (stack.splice(stack.length>2?2:1,0,stack.shift()),stack.unshift(''))
   :a=='#'&&stack[1]?
     stack.unshift('',stack[1])
 
   //ex mode
   :a==';'?
-    (
-      stack[0]?O.write('\n'):stack.shift(),process.stdin.pause(),O.green().write('\r\t\r'),
-      v=I(';')||'',exec(v),
-      process.stdin.resume(),stack.unshift('')
-    )
+    read(_=>(O.green(),exec(I(';')||'')))
 
   //vars
   :a=='='?
-    (
-      stack[0]?O.write('\n'):stack.shift(),process.stdin.pause(),O.blue().write('\r\t\r'),
-      v=I('='),v&&stack[0]&&(vars[v]=stack.shift()),
-      process.stdin.resume(),stack.unshift('')
-    )
+    read(_=>(O.blue(),(v=I('='))&&stack[0]&&(vars[v]=stack.shift())))
   :a=='|'?
-    (
-      stack[0]?O.write('\n'):stack.shift(),process.stdin.pause(),O.blue().write('\r\t\r'),
-      v=I('|'),vars[v]&&stack.unshift(vars[v]),
-      process.stdin.resume(),stack.unshift('')
-    )
+    read(_=>(O.blue(),vars[v=I('|')]&&stack.unshift(vars[v])))
 
   :0
 
