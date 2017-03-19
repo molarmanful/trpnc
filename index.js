@@ -11,14 +11,14 @@ vars={
   pi:Math.PI+'',
   e:Math.E+''
 }
-und=[stack]
+und=[]
 red=[]
 
 O.write('\033c\n–>\t')
 K(process.stdin)
 
 sto=_=>{
-  _!='u'&&_!='r'?(und.push(stack),red=[]):(stack=und[und.length-1])
+  _!='u'&&_!='r'&&stack.some((a,b)=>a!=(und[und.length-1]||[])[b])&&(und.push(stack.slice()),red=[])
   O.reset().write('\033c'+stack.map((a,b)=>b+'\t'+a).reverse().join`\n`)
   O.write('\n–>\t'+buf)
 }
@@ -29,12 +29,22 @@ exec=x=>{
   x.split` +`.map(a=>{
     a=='q'?
       process.exit(0)
+    :a=='e'?
+      (buf=stack.shift())
 
     //bulk stack commands
     :a=='r'?
       stack.reverse()
     :a=='c'?
       (stack=[])
+    :a=='s'?
+      (stack.sort((a,b)=>b-a))
+    :a=='S'?
+      (stack.sort(_=>.5-Math.random()))
+    :a=='max'?
+      stack.unshift(Math.max(...stack))
+    :a=='min'?
+      stack.unshift(Math.min(...stack))
 
     //rounding
     :a=='trunc'?
@@ -45,6 +55,14 @@ exec=x=>{
       (stack[0]=Math.round(stack[0]))
     :a=='ceil'?
       (stack[0]=Math.ceil(stack[0]))
+
+    //logs
+    :a=='ln'?
+      stack.unshift(Math.log(stack.shift()))
+    :a=='lt'?
+      stack.unshift(Math.log10(stack.shift()))
+    :a=='log'?
+      stack.unshift(Math.log(stack.shift())/Math.log(stack.shift()))
 
     :0
   })
@@ -74,33 +92,33 @@ process.stdin.on('keypress',key=(a='',b='')=>{
     stack.unshift(C.paste())
 
   //undo/redo
-  :a=='u'&&und.length>1?
-    red.push(und.pop())
-  :a=='r'&&red.length?
-    und.push(red.pop())
+  :a=='u'&&und[0]?
+    (red.push(und.pop()),stack=und[und.length-1]||[])
+  :a=='r'&&red[0]?
+    (und.push(red.pop()),stack=und[und.length-1]||[])
 
   //math
-  :a=='_'&&stack[0]?
+  :a=='_'&&stack.length?
     (stack[0]=''+-stack[0])
   :a.match(/^[+\-*/%]$/)&&stack[1]?
     stack.unshift(eval(`${+stack.splice(1,1)} ${a} ${+stack.shift()}`))
-  :a=='^'&&stack[1]?
+  :a=='^'&&stack.length>1?
     stack.unshift(Math.pow(stack.splice(1,1),stack.shift()))
-  :a=='v'&&stack[0]?
+  :a=='v'&&stack.length?
     (stack[0]=Math.sqrt(stack[0]))
   :a=='?'?
-    stack.unshift(Math.random()*2|0)
+    stack.unshift(Math.random())
 
   //stack
-  :a=='$'&&stack[0]?
+  :a=='$'&&stack.length?
     stack.unshift(stack[0])
-  :a=='!'&&stack[0]?
+  :a=='!'&&stack.length?
     stack.shift()
-  :a=='\\'&&stack[1]?
+  :a=='\\'&&stack.length>1?
     stack.unshift('',stack.splice(1,1))
-  :a=='@'&&stack[2]?
+  :a=='@'&&stack.length>2?
     stack.splice(stack.length>2?2:1,0,stack.shift())
-  :a=='#'&&stack[1]?
+  :a=='#'&&stack.length>1?
     stack.unshift(stack[1])
 
   //ex mode
