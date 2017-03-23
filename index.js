@@ -11,6 +11,7 @@ vars={
   pi:Math.PI+'',
   e:Math.E+''
 }
+macs={}
 und=[]
 red=[]
 
@@ -130,6 +131,17 @@ process.stdin.on('keypress',key=(a='',b='')=>{
     read(_=>(O.blue(),(v=I('=>\t'))&&stack[0]&&(vars[v]=stack.shift())))
   :a=='|'?
     read(_=>(O.blue(),vars[v=I('|>\t')]&&stack.unshift(vars[v])))
+
+  //macros
+  :a=='['?
+    read(_=>(
+      O.cyan(),
+      v=I('[:\t'),v&&(macs[v]=(I('[>\t')||'')
+        .replace(/\0r/g,'\r')
+        .replace(/\0b/g,'\b')
+    )))
+  :a==']'?
+    read(_=>(O.cyan(),v=I(']>\t'),v&&macs[v].split``.map(x=>R.keyTap(x))))
 
   :0
 
