@@ -21,6 +21,7 @@
   "homepage": "https://github.com/molarmanful/trpnc#readme",
   "dependencies": {
     "ansi": "^0.3.1",
+    "balanced-match": "^0.4.2",
     "keypress": "^0.2.1",
     "prompt-sync": "git+https://github.com/0x00A/prompt-sync.git",
     "robotjs": "^0.4.5"

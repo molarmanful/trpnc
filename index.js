@@ -5,6 +5,7 @@ E=require('child_process').execSync
 I=require('prompt-sync')()
 C=require('copy-paste')
 R=require('robotjs')
+B=require('balanced-match')
 stack=[]
 buf=''
 vars={
@@ -75,13 +76,13 @@ read=x=>{
 }
 
 //main process
-process.stdin.on('keypress',key=(a='',b='')=>{
+process.stdin.on('keypress',key=(a='',b='',In=I)=>{
   //num
   a.match(/^\d$/)||(a=='e'&&buf)||(a=='.'&&!buf.match(/\./))?
     (buf+=a)
   :(a==' '||a=='\r'||a=='\n')&&buf?
     (stack.unshift(buf),buf='')
-  :(a=='backspace'||b.name=='backspace')&&buf?
+  :(a=='backspace'||a=='\b'||b.name=='backspace')&&buf?
     (buf=buf.slice(0,-1))
 
   //copy-paste
@@ -122,26 +123,30 @@ process.stdin.on('keypress',key=(a='',b='')=>{
 
   //ex mode
   :a==';'?
-    read(_=>(O.green(),exec(I(';>\t')||'')))
+    read(_=>(O.green(),exec(In(';>\t')||'')))
 
   //vars
   :a=='='?
-    read(_=>(O.blue(),(v=I('=>\t'))&&stack[0]&&(vars[v]=stack.shift())))
+    read(_=>(O.blue(),(v=In('=>\t'))&&stack[0]&&(vars[v]=stack.shift())))
   :a=='|'?
-    read(_=>(O.blue(),vars[v=I('|>\t')]&&stack.unshift(vars[v])))
+    read(_=>(O.blue(),vars[v=In('|>\t')]&&stack.unshift(vars[v])))
 
   //macros
   :a=='['?
     read(_=>(
       O.cyan(),
-      v=I('[:\t'),v&&(
-        macs[v]=(I('[>\t')||'')
-          .replace(/<cr>/ig,'\r')
-          .replace(/<bs>/ig,'\b')
-      )
+      v=In('[>\t'),
+      v&&(macs[v[0]]=v.replace(/<bs>/ig,'\b'))
     ))
   :a==']'?
-    read(_=>(O.cyan(),v=I(']>\t'),macs[v]&&R.typeString(macs[v])))
+    read(_=>(O.cyan(),macs[v=In(']>\t')]&&(f=x=>(
+      m=B('{','}',x),
+      m?(
+        m.pre.slice(0,-1).split``.map(x=>key(x)),
+        key(m.pre.slice(-1),'',_=>m.body),
+        f(m.post)
+      ):x&&x.split``.map(x=>key(x))
+    ))(macs[v])))
 
   :0
 
