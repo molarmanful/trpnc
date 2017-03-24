@@ -3,7 +3,6 @@ K=require('keypress')
 O=require('ansi')(process.stdout)
 E=require('child_process').execSync
 I=require('prompt-sync')()
-R=require('robotjs')
 C=require('copy-paste')
 stack=[]
 buf=''
@@ -71,9 +70,7 @@ exec=x=>{
 
 read=x=>{
   O.horizontalAbsolute(0).eraseLine()
-  process.stdin.pause()
   x()
-  process.stdin.resume()
 }
 
 //main process
@@ -136,12 +133,22 @@ process.stdin.on('keypress',key=(a='',b='')=>{
   :a=='['?
     read(_=>(
       O.cyan(),
-      v=I('[:\t'),v&&(macs[v]=(I('[>\t')||'')
-        .replace(/\0r/g,'\r')
-        .replace(/\0b/g,'\b')
-    )))
+      v=I('[:\t'),v&&(
+        macs[v]=(I('[>\t')||'')
+          .replace(/<cr>/ig,'\r')
+          .replace(/<bs>/ig,'\b')
+      )
+    ))
   :a==']'?
-    read(_=>(O.cyan(),v=I(']>\t'),v&&macs[v].split``.map(x=>R.keyTap(x))))
+    read(_=>(O.cyan(),v=I(']>\t'),macs[v]&&macs[v].split``.map(a=>
+      a=='"'?
+        E(`xdotool type '"'`)
+      :a=="'"?
+        E(`xdotool type "'"`)
+      :a=="`"?
+        E(`xdotool type "\`"`)
+      :E(`xdotool type $'${a}'`)
+    )))
 
   :0
 
