@@ -4,6 +4,7 @@ O=require('ansi')(process.stdout)
 E=require('child_process').execSync
 I=require('prompt-sync')()
 C=require('copy-paste')
+R=require('robotjs')
 stack=[]
 buf=''
 vars={
@@ -140,15 +141,7 @@ process.stdin.on('keypress',key=(a='',b='')=>{
       )
     ))
   :a==']'?
-    read(_=>(O.cyan(),v=I(']>\t'),macs[v]&&macs[v].split``.map(a=>
-      a=='"'?
-        E(`xdotool type '"'`)
-      :a=="'"?
-        E(`xdotool type "'"`)
-      :a=="`"?
-        E(`xdotool type "\`"`)
-      :E(`xdotool type $'${a}'`)
-    )))
+    read(_=>(O.cyan(),v=I(']>\t'),macs[v]&&R.typeString(macs[v])))
 
   :0
 
