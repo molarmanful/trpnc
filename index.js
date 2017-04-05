@@ -115,7 +115,7 @@ process.stdin.on('keypress',key=(a='',b='',In=I)=>{
   :a=='!'&&stack.length?
     stack.shift()
   :a=='\\'&&stack.length>1?
-    stack.unshift('',stack.splice(1,1))
+    stack.unshift(stack.splice(1,1))
   :a=='@'&&stack.length>2?
     stack.splice(stack.length>2?2:1,0,stack.shift())
   :a=='#'&&stack.length>1?
